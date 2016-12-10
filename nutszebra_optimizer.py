@@ -253,7 +253,7 @@ class OptimizerResNext(Optimizer):
 class OptimizerFractalNet(Optimizer):
 
     def __init__(self, model=None, lr=0.02, momentum=0.9, schedule=(150, 225, 300, 375)):
-        super(OptimizerSwapout, self).__init__(model)
+        super(OptimizerFractalNet, self).__init__(model)
         optimizer = optimizers.MomentumSGD(lr, momentum)
         optimizer.setup(self.model)
         self.optimizer = optimizer
