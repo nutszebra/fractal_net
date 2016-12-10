@@ -319,7 +319,7 @@ class FractalBlock(nutszebra_chainer.Model):
 
 class FractalNet(nutszebra_chainer.Model):
 
-    def __init__(self, num_category, block_num=5, C=(4, 3, 3, 3, 3), channels=(64, 128, 256, 512, 512), block_dropout=(0.0, 0.1, 0.2, 0.3, 0.4)):
+    def __init__(self, num_category, block_num=5, C=(3, 3, 3, 3, 3), channels=(64, 128, 256, 512, 512), block_dropout=(0.0, 0.1, 0.2, 0.3, 0.4)):
         super(FractalNet, self).__init__()
         modules = []
         in_channel = 3
@@ -352,7 +352,7 @@ class FractalNet(nutszebra_chainer.Model):
     def count_parameters(self):
         count = 0
         for name, link in self.modules:
-            count += link.weight_initialization()
+            count += link.count_parameters()
         return count
 
     def calc_loss(self, y, t):
