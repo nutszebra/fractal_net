@@ -12,7 +12,7 @@ Implementation of FractalNet by chainer
     python main.py -g 0
 
 # Note
-Learning is stagnated until 20 epoch, so be patient
+FractalNet start learning around 20 epoch, so be patient
 
 
 # Details about my implementation
