@@ -25,11 +25,11 @@ Test: Pictures are resized to 32x32, then they are normalized locally. Single im
 * Learning rate schedule
 Initial leranig rate is 0.02 and it is divided by 10 at [150, 225, 300, 375] epoch.
 
-* Global drop path
-Implemented
+* Global drop path  
+Implemented  
 
-* Local drop path
-Implemented
+* Local drop path  
+Implemented  
 
 # Cifar10 result
 | network                   | total accuracy (%) |
