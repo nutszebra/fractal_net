@@ -1,3 +1,4 @@
+import six
 import chainer
 from chainer import optimizers
 import nutszebra_basic_print
@@ -254,8 +255,67 @@ class OptimizerFractalNet(Optimizer):
 
     def __init__(self, model=None, lr=0.02, momentum=0.9, schedule=(150, 225, 300, 375)):
         super(OptimizerFractalNet, self).__init__(model)
+        self.lr = lr
+        self.momentum = momentum
+        self.schedule = schedule
+        all_links = OptimizerFractalNet._find(model)
+        optimizer_set = []
+        for link in all_links:
+            optimizer = optimizers.MomentumSGD(lr, momentum)
+            optimizer.setup(link[0])
+            optimizer_set.append(optimizer)
+        self.optimizer_set = optimizer_set
+        self.all_links = all_links
+
+    def __call__(self, i):
+        if i in self.schedule:
+            lr = self.optimizer.lr / 10
+            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
+            for optimizer in self.optimizer_set:
+                optimizer.lr = lr
+
+    def update(self):
+        for i in six.moves.range(len(self.all_links)):
+            if self.all_links[i][1].grad is not None:
+                self.optimizer_set[i].update()
+
+    @staticmethod
+    def _grad(ele):
+        if hasattr(ele, 'W') and hasattr(ele.W, 'grad'):
+            return (ele, ele.W)
+        if hasattr(ele, 'beta') and hasattr(ele.beta, 'grad'):
+            return (ele, ele.beta)
+        return None
+
+    @staticmethod
+    def _children(ele):
+        return hasattr(ele, '_children')
+
+    @staticmethod
+    def _find(model):
+        links = []
+
+        def dfs(ele):
+
+            grad = OptimizerStochasticDepth._grad(ele)
+            if grad is not None:
+                links.append(grad)
+            else:
+                if OptimizerStochasticDepth._children(ele):
+                    for link in ele._children:
+                        dfs(ele[link])
+        dfs(model)
+        return links
+
+
+class OptimizerPyramidalResNet(Optimizer):
+
+    def __init__(self, model=None, lr=0.5, momentum=0.9, schedule=(150, 225), weight_decay=1.0e-4):
+        super(OptimizerPyramidalResNet, self).__init__(model)
         optimizer = optimizers.MomentumSGD(lr, momentum)
+        weight_decay = chainer.optimizer.WeightDecay(weight_decay)
         optimizer.setup(self.model)
+        optimizer.add_hook(weight_decay)
         self.optimizer = optimizer
         self.schedule = schedule
         self.lr = lr
@@ -266,3 +326,308 @@ class OptimizerFractalNet(Optimizer):
             lr = self.optimizer.lr / 10
             print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
             self.optimizer.lr = lr
+
+
+class OptimizerStochasticDepth(Optimizer):
+
+    def __init__(self, model=None, lr=0.1, momentum=0.9, schedule=(250, 375), weight_decay=1.0e-4):
+        super(OptimizerStochasticDepth, self).__init__(model)
+        self.lr = lr
+        self.momentum = momentum
+        self.schedule = schedule
+        self.weight_decay = weight_decay
+        all_links = OptimizerStochasticDepth._find(model)
+        optimizer_set = []
+        for link in all_links:
+            optimizer = optimizers.MomentumSGD(lr, momentum)
+            weight_decay = chainer.optimizer.WeightDecay(self.weight_decay)
+            optimizer.setup(link[0])
+            optimizer.add_hook(weight_decay)
+            optimizer_set.append(optimizer)
+        self.optimizer_set = optimizer_set
+        self.all_links = all_links
+
+    def __call__(self, i):
+        if i in self.schedule:
+            lr = self.optimizer.lr / 10
+            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
+            for optimizer in self.optimizer_set:
+                optimizer.lr = lr
+
+    def update(self):
+        for i in six.moves.range(len(self.all_links)):
+            if self.all_links[i][1].grad is not None:
+                self.optimizer_set[i].update()
+
+    @staticmethod
+    def _grad(ele):
+        if hasattr(ele, 'W') and hasattr(ele.W, 'grad'):
+            return (ele, ele.W)
+        if hasattr(ele, 'beta') and hasattr(ele.beta, 'grad'):
+            return (ele, ele.beta)
+        return None
+
+    @staticmethod
+    def _children(ele):
+        return hasattr(ele, '_children')
+
+    @staticmethod
+    def _find(model):
+        links = []
+
+        def dfs(ele):
+
+            grad = OptimizerStochasticDepth._grad(ele)
+            if grad is not None:
+                links.append(grad)
+            else:
+                if OptimizerStochasticDepth._children(ele):
+                    for link in ele._children:
+                        dfs(ele[link])
+        dfs(model)
+        return links
+
+
+class OptimizerResnetOfResnet(Optimizer):
+
+    def __init__(self, model=None, lr=0.1, momentum=0.9, schedule=(250, 375), weight_decay=1.0e-4):
+        super(OptimizerResnetOfResnet, self).__init__(model)
+        self.lr = lr
+        self.momentum = momentum
+        self.schedule = schedule
+        self.weight_decay = weight_decay
+        all_links = OptimizerStochasticDepth._find(model)
+        optimizer_set = []
+        for link in all_links:
+            optimizer = optimizers.MomentumSGD(lr, momentum)
+            weight_decay = chainer.optimizer.WeightDecay(self.weight_decay)
+            optimizer.setup(link[0])
+            optimizer.add_hook(weight_decay)
+            optimizer_set.append(optimizer)
+        self.optimizer_set = optimizer_set
+        self.all_links = all_links
+
+    def __call__(self, i):
+        if i in self.schedule:
+            lr = self.optimizer.lr / 10
+            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
+            for optimizer in self.optimizer_set:
+                optimizer.lr = lr
+
+    def update(self):
+        for i in six.moves.range(len(self.all_links)):
+            if self.all_links[i][1].grad is not None:
+                self.optimizer_set[i].update()
+
+    @staticmethod
+    def _grad(ele):
+        if hasattr(ele, 'W') and hasattr(ele.W, 'grad'):
+            return (ele, ele.W)
+        if hasattr(ele, 'beta') and hasattr(ele.beta, 'grad'):
+            return (ele, ele.beta)
+        return None
+
+    @staticmethod
+    def _children(ele):
+        return hasattr(ele, '_children')
+
+    @staticmethod
+    def _find(model):
+        links = []
+
+        def dfs(ele):
+
+            grad = OptimizerStochasticDepth._grad(ele)
+            if grad is not None:
+                links.append(grad)
+            else:
+                if OptimizerStochasticDepth._children(ele):
+                    for link in ele._children:
+                        dfs(ele[link])
+        dfs(model)
+        return links
+
+
+class OptimizerPReLUNet(Optimizer):
+
+    def __init__(self, model=None, lr=0.01, momentum=0.9, schedule=(150, 225), weight_decay=5.0e-4):
+        super(OptimizerPReLUNet, self).__init__(model)
+        optimizer = optimizers.MomentumSGD(lr, momentum)
+        weight_decay = chainer.optimizer.WeightDecay(weight_decay)
+        optimizer.setup(self.model)
+        optimizer.add_hook(weight_decay)
+        self.optimizer = optimizer
+        self.schedule = schedule
+        self.lr = lr
+        self.momentum = momentum
+
+    def __call__(self, i):
+        if i in self.schedule:
+            lr = self.optimizer.lr / 10
+            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
+            self.optimizer.lr = lr
+
+
+class OptimizerResnetInResnet(Optimizer):
+
+    def __init__(self, model=None, schedule=(42, 62), lr=0.1, momentum=0.9, weight_decay=1.0e-4):
+        super(OptimizerResnetInResnet, self).__init__(model)
+        optimizer = optimizers.MomentumSGD(lr, momentum)
+        weight_decay = chainer.optimizer.WeightDecay(weight_decay)
+        optimizer.setup(self.model)
+        optimizer.add_hook(weight_decay)
+        self.optimizer = optimizer
+        self.schedule = schedule
+        self.lr = lr
+        self.momentum = momentum
+        self.weight_decay = weight_decay
+
+    def __call__(self, i):
+        if i in self.schedule:
+            lr = self.optimizer.lr / 10
+            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
+            self.optimizer.lr = lr
+
+
+class OptimizerAppendixA(Optimizer):
+
+    def __init__(self, model=None, schedule=(150, 175), lr=0.1, momentum=0.9, weight_decay=1.0e-4):
+        super(OptimizerAppendixA, self).__init__(model)
+        optimizer = optimizers.MomentumSGD(lr, momentum)
+        weight_decay = chainer.optimizer.WeightDecay(weight_decay)
+        optimizer.setup(self.model)
+        optimizer.add_hook(weight_decay)
+        self.optimizer = optimizer
+        self.schedule = schedule
+        self.lr = lr
+        self.momentum = momentum
+        self.weight_decay = weight_decay
+
+    def __call__(self, i):
+        if i in self.schedule:
+            lr = self.optimizer.lr / 10
+            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
+            self.optimizer.lr = lr
+
+
+class OptimizerWeightedRes(Optimizer):
+
+    def __init__(self, model=None, lr=0.1, momentum=0.9, schedule=(int(32000. / (50000. / 128)), int(48000. / (50000. / 128))), weight_decay=1.0e-4, weight_lr=0.001):
+        super(OptimizerWeightedRes, self).__init__(model)
+        self.lr = lr
+        self.momentum = momentum
+        self.schedule = schedule
+        self.weight_decay = weight_decay
+        self.weight_lr = weight_lr
+        all_links = OptimizerWeightedRes._find(model)
+        optimizer_set = []
+        for link in all_links:
+            if link[1].data.shape == (1, 1, 1, 1):
+                optimizer = optimizers.MomentumSGD(weight_lr, momentum)
+            else:
+                optimizer = optimizers.MomentumSGD(lr, momentum)
+            weight_decay = chainer.optimizer.WeightDecay(self.weight_decay)
+            optimizer.setup(link[0])
+            optimizer.add_hook(weight_decay)
+            optimizer_set.append(optimizer)
+        self.optimizer_set = optimizer_set
+        self.all_links = all_links
+
+    def __call__(self, i):
+        if i in self.schedule:
+            lr = self.optimizer.lr / 10
+            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
+            for optimizer in self.optimizer_set:
+                optimizer.lr = lr
+
+    def update(self):
+        for i in six.moves.range(len(self.all_links)):
+            if self.all_links[i][1].grad is not None:
+                self.optimizer_set[i].update()
+
+    @staticmethod
+    def _grad(ele):
+        if hasattr(ele, 'W') and hasattr(ele.W, 'grad'):
+            return (ele, ele.W)
+        if hasattr(ele, 'beta') and hasattr(ele.beta, 'grad'):
+            return (ele, ele.beta)
+        return None
+
+    @staticmethod
+    def _children(ele):
+        return hasattr(ele, '_children')
+
+    @staticmethod
+    def _find(model):
+        links = []
+
+        def dfs(ele):
+
+            grad = OptimizerStochasticDepth._grad(ele)
+            if grad is not None:
+                links.append(grad)
+            else:
+                if OptimizerWeightedRes._children(ele):
+                    for link in ele._children:
+                        dfs(ele[link])
+        dfs(model)
+        return links
+
+
+class OptimizerPyramidalResNetWithSSD(Optimizer):
+
+    def __init__(self, model=None, lr=0.5, momentum=0.9, schedule=(150, 225), weight_decay=1.0e-4):
+        super(OptimizerPyramidalResNetWithSSD, self).__init__(model)
+        self.lr = lr
+        self.momentum = momentum
+        self.schedule = schedule
+        self.weight_decay = weight_decay
+        all_links = OptimizerPyramidalResNetWithSSD._find(model)
+        optimizer_set = []
+        for link in all_links:
+            optimizer = optimizers.MomentumSGD(lr, momentum)
+            weight_decay = chainer.optimizer.WeightDecay(self.weight_decay)
+            optimizer.setup(link[0])
+            optimizer.add_hook(weight_decay)
+            optimizer_set.append(optimizer)
+        self.optimizer_set = optimizer_set
+        self.all_links = all_links
+
+    def __call__(self, i):
+        if i in self.schedule:
+            lr = self.optimizer.lr / 10
+            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
+            self.optimizer.lr = lr
+
+    def update(self):
+        for i in six.moves.range(len(self.all_links)):
+            if self.all_links[i][1].grad is not None:
+                self.optimizer_set[i].update()
+
+    @staticmethod
+    def _grad(ele):
+        if hasattr(ele, 'W') and hasattr(ele.W, 'grad'):
+            return (ele, ele.W)
+        if hasattr(ele, 'beta') and hasattr(ele.beta, 'grad'):
+            return (ele, ele.beta)
+        return None
+
+    @staticmethod
+    def _children(ele):
+        return hasattr(ele, '_children')
+
+    @staticmethod
+    def _find(model):
+        links = []
+
+        def dfs(ele):
+
+            grad = OptimizerStochasticDepth._grad(ele)
+            if grad is not None:
+                links.append(grad)
+            else:
+                if OptimizerStochasticDepth._children(ele):
+                    for link in ele._children:
+                        dfs(ele[link])
+        dfs(model)
+        return links
