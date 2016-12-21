@@ -266,12 +266,15 @@ class OptimizerFractalNet(Optimizer):
             optimizer_set.append(optimizer)
         self.optimizer_set = optimizer_set
         self.all_links = all_links
+        self.flag = False
 
     def __call__(self, i):
         if i in self.schedule:
-            lr = self.optimizer.lr / 10
-            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
             for optimizer in self.optimizer_set:
+                lr = optimizer.lr / 10
+                if self.flag is False:
+                    print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
+                    self.flag = True
                 optimizer.lr = lr
 
     def update(self):
@@ -346,12 +349,15 @@ class OptimizerStochasticDepth(Optimizer):
             optimizer_set.append(optimizer)
         self.optimizer_set = optimizer_set
         self.all_links = all_links
+        self.flag = False
 
     def __call__(self, i):
         if i in self.schedule:
-            lr = self.optimizer.lr / 10
-            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
             for optimizer in self.optimizer_set:
+                lr = optimizer.lr / 10
+                if self.flag is False:
+                    print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
+                    self.flag = True
                 optimizer.lr = lr
 
     def update(self):
@@ -406,12 +412,15 @@ class OptimizerResnetOfResnet(Optimizer):
             optimizer_set.append(optimizer)
         self.optimizer_set = optimizer_set
         self.all_links = all_links
+        self.flag = False
 
     def __call__(self, i):
         if i in self.schedule:
-            lr = self.optimizer.lr / 10
-            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
             for optimizer in self.optimizer_set:
+                lr = optimizer.lr / 10
+                if self.flag is False:
+                    print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
+                    self.flag = True
                 optimizer.lr = lr
 
     def update(self):
@@ -532,12 +541,15 @@ class OptimizerWeightedRes(Optimizer):
             optimizer_set.append(optimizer)
         self.optimizer_set = optimizer_set
         self.all_links = all_links
+        self.flag = False
 
     def __call__(self, i):
         if i in self.schedule:
-            lr = self.optimizer.lr / 10
-            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
             for optimizer in self.optimizer_set:
+                lr = optimizer.lr / 10
+                if self.flag is False:
+                    print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
+                    self.flag = True
                 optimizer.lr = lr
 
     def update(self):
@@ -592,12 +604,16 @@ class OptimizerPyramidalResNetWithSSD(Optimizer):
             optimizer_set.append(optimizer)
         self.optimizer_set = optimizer_set
         self.all_links = all_links
+        self.flag = False
 
     def __call__(self, i):
         if i in self.schedule:
-            lr = self.optimizer.lr / 10
-            print('lr is changed: {} -> {}'.format(self.optimizer.lr, lr))
-            self.optimizer.lr = lr
+            for optimizer in self.optimizer_set:
+                lr = optimizer.lr / 10
+                if self.flag is False:
+                    print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
+                    self.flag = True
+                optimizer.lr = lr
 
     def update(self):
         for i in six.moves.range(len(self.all_links)):
