@@ -34,7 +34,7 @@ Implemented
 | network                   | total accuracy (%) |
 |:--------------------------|-------------------:|
 | FractalNet [[1]][Paper]   | 95.41              |
-| my implementation         | soon               |
+| my implementation         | 92.28               |
 
 <img src="https://github.com/nutszebra/fractal_net/blob/master/loss.jpg" alt="loss" title="loss">
 <img src="https://github.com/nutszebra/fractal_net/blob/master/accuracy.jpg" alt="total accuracy" title="total accuracy">
