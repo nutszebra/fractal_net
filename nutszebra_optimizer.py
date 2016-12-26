@@ -253,7 +253,7 @@ class OptimizerResNext(Optimizer):
 
 class OptimizerFractalNet(Optimizer):
 
-    def __init__(self, model=None, lr=0.02, momentum=0.9, schedule=(150, 225, 300, 375)):
+    def __init__(self, model=None, lr=0.02, momentum=0.9, schedule=(200, 300, 350, 375)):
         super(OptimizerFractalNet, self).__init__(model)
         self.lr = lr
         self.momentum = momentum
@@ -276,6 +276,7 @@ class OptimizerFractalNet(Optimizer):
                     print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
                     self.flag = True
                 optimizer.lr = lr
+            self.flag = False
 
     def update(self):
         for i in six.moves.range(len(self.all_links)):
@@ -359,6 +360,7 @@ class OptimizerStochasticDepth(Optimizer):
                     print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
                     self.flag = True
                 optimizer.lr = lr
+            self.flag = False
 
     def update(self):
         for i in six.moves.range(len(self.all_links)):
@@ -422,6 +424,7 @@ class OptimizerResnetOfResnet(Optimizer):
                     print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
                     self.flag = True
                 optimizer.lr = lr
+            self.flag = False
 
     def update(self):
         for i in six.moves.range(len(self.all_links)):
@@ -551,6 +554,7 @@ class OptimizerWeightedRes(Optimizer):
                     print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
                     self.flag = True
                 optimizer.lr = lr
+            self.flag = False
 
     def update(self):
         for i in six.moves.range(len(self.all_links)):
@@ -614,6 +618,7 @@ class OptimizerPyramidalResNetWithSSD(Optimizer):
                     print('lr is changed: {} -> {}'.format(optimizer.lr, lr))
                     self.flag = True
                 optimizer.lr = lr
+            self.flag = False
 
     def update(self):
         for i in six.moves.range(len(self.all_links)):
