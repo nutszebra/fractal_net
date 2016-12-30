@@ -40,7 +40,7 @@ if __name__ == '__main__':
                         default=4,
                         help='divid batch number by this')
     parser.add_argument('--lr', '-lr', type=float,
-                        default=0.02,
+                        default=0.04,
                         help='leraning rate')
 
     args = parser.parse_args().__dict__
