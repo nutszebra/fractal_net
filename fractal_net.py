@@ -326,7 +326,7 @@ class FractalNet(nutszebra_chainer.Model):
         for i, c, out_channel, dropout_ratio in six.moves.zip(six.moves.range(1, block_num + 1), C, channels, block_dropout):
             modules += [('fractal_block{}'.format(i), FractalBlock(c, in_channel, out_channel, dropout_ratio=dropout_ratio))]
             in_channel = out_channel
-        modules += [('conv_bn_relu', Conv_BN_ReLU(out_channel, num_category, filter_size=(1, 1), stride=(1, 1), pad=(1, 1)))]
+        modules += [('conv_bn_relu', Conv_BN_ReLU(out_channel, num_category, filter_size=(1, 1), stride=(1, 1), pad=(0, 0)))]
         # register layers
         [self.add_link(*link) for link in modules]
         self.modules = modules
