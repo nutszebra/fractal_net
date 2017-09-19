@@ -253,7 +253,7 @@ class OptimizerResNext(Optimizer):
 
 class OptimizerFractalNet(Optimizer):
 
-    def __init__(self, model=None, lr=0.02, momentum=0.9, schedule=(200, 300, 350, 375)):
+    def __init__(self, model=None, lr=0.02, momentum=0.9, schedule=(200, 300, 350, 375), weight_decay=1.0e-4):
         super(OptimizerFractalNet, self).__init__(model)
         self.lr = lr
         self.momentum = momentum
@@ -261,8 +261,10 @@ class OptimizerFractalNet(Optimizer):
         all_links = OptimizerFractalNet._find(model)
         optimizer_set = []
         for link in all_links:
+            wd = chainer.optimizer.WeightDecay(weight_decay)
             optimizer = optimizers.MomentumSGD(lr, momentum)
             optimizer.setup(link[0])
+            optimizer.add_hook(wd)
             optimizer_set.append(optimizer)
         self.optimizer_set = optimizer_set
         self.all_links = all_links
