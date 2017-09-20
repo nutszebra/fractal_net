@@ -7,6 +7,27 @@ import functools
 from collections import defaultdict
 
 
+class BN_ReLU_Conv(nutszebra_chainer.Model):
+
+    def __init__(self, in_channel, out_channel, filter_size=(3, 3), stride=(1, 1), pad=(1, 1)):
+        super(BN_ReLU_Conv, self).__init__(
+            bn=L.BatchNormalization(in_channel),
+            conv=L.Convolution2D(in_channel, out_channel, filter_size, stride, pad),
+        )
+
+    def weight_initialization(self):
+        self.conv.W.data = self.weight_relu_initialization(self.conv)
+        self.conv.b.data = self.bias_initialization(self.conv, constant=0)
+
+    def __call__(self, x, train=False):
+        if type(x) is int:
+            return 0
+        return self.conv(F.relu(self.bn(x, test=not train)))
+
+    def count_parameters(self):
+        return functools.reduce(lambda a, b: a * b, self.conv.W.data.shape)
+
+
 class Conv_BN_ReLU(nutszebra_chainer.Model):
 
     def __init__(self, in_channel, out_channel, filter_size=(3, 3), stride=(1, 1), pad=(1, 1)):
@@ -326,7 +347,7 @@ class FractalNet(nutszebra_chainer.Model):
         for i, c, out_channel, dropout_ratio in six.moves.zip(six.moves.range(1, block_num + 1), C, channels, block_dropout):
             modules += [('fractal_block{}'.format(i), FractalBlock(c, in_channel, out_channel, dropout_ratio=dropout_ratio))]
             in_channel = out_channel
-        modules += [('conv_bn_relu', Conv_BN_ReLU(out_channel, num_category, filter_size=(1, 1), stride=(1, 1), pad=(0, 0)))]
+        modules += [('bn_relu_conv', BN_ReLU_Conv(out_channel, num_category, filter_size=(1, 1), stride=(1, 1), pad=(0, 0)))]
         # register layers
         [self.add_link(*link) for link in modules]
         self.modules = modules
@@ -344,7 +365,7 @@ class FractalNet(nutszebra_chainer.Model):
         for i in six.moves.range(1, self.block_num + 1):
             x = self['fractal_block{}'.format(i)](x, train=train)
             x = F.max_pooling_2d(x, ksize=(2, 2), stride=(2, 2), pad=(0, 0))
-        h = self.conv_bn_relu(x, train=train, dropout_ratio=0.0)
+        h = self.bn_relu_conv(x, train=train)
         num, categories, y, x = h.data.shape
         h = F.reshape(F.average_pooling_2d(h, (y, x)), (num, categories))
         return h
